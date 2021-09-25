@@ -8,34 +8,51 @@
           type="number"
           class="form-control mb-3"
           placeholder="Einsatz..."
-          v-model="einsatz"
+          :value="inputEinsatz"
           required
         />
         <input
           type="number"
           class="form-control mb-3"
           placeholder="Höchsteinsatz..."
-          v-model="maxValue"
+          :value="inputMaxValue"
           required
         />
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
+      <p>Der Spieler gewinnt die Runde, wenn die Zahl zwischen 13 und 24 ist</p>
     </form>
-    <table class="table">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
-          <th scope="col">#</th>
-          <th scope="col">Winner Number</th>
-          <th scope="col">Current Money</th>
-          <th scope="col">Handle</th>
+          <th scope="col" class="text-center">#</th>
+          <th scope="col" class="text-center">Winner Number</th>
+          <th scope="col" class="text-center">Current Money</th>
+          <th scope="col" class="text-center">Einsatz</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(number, index) in winnerNumber" :key="index">
+        <tr v-for="(current, index) in tries" :key="index">
           <th scope="row">{{ index }}</th>
-          <td>{{ number.winner }}</td>
-          <td>{{ number.currentValue }}</td>
-          <td>@mdo</td>
+          <td
+            :class="
+              current.winnerNumber >= 13 && current.winnerNumber <= 24
+                ? 'text-center text-success'
+                : 'text-center text-danger'
+            "
+          >
+            {{ current.winnerNumber }}
+          </td>
+          <td
+            :class="
+              current.currentMoney >= 0
+                ? 'text-center bg-success'
+                : 'text-center bg-danger'
+            "
+          >
+            {{ current.currentMoney }}
+          </td>
+          <td class="text-center">{{ current.einsatz }}</td>
         </tr>
       </tbody>
     </table>
@@ -47,30 +64,56 @@ export default {
   name: 'App',
   data() {
     return {
+      inputEinsatz: 5,
+      inputMaxValue: 10000,
       einsatz: null,
       maxValue: null,
-      winnerNumber: [],
+      tries: [],
     };
   },
   methods: {
     submit() {
-      console.log(this.einsatz);
-      console.log(this.maxValue);
+      this.reset();
+      this.einsatz = this.inputEinsatz;
+      this.maxValue = this.inputMaxValue;
       for (var i = 0; i < 100; i++) {
-        const randomVal = this.getRandomInt();
-        this.winnerNumber.push({
-          winner: randomVal,
-          currentValue: (this.maxValue -= this.einsatz),
-        });
-        this.einsatz = this.einsatz * 2;
+        const win = this.getRandomInt();
+        let currentMoney =
+          this.tries.length > 1 ? this.tries[i - 1].currentMoney : this.einsatz;
+
+        if (win >= 13 && win <= 24) {
+          currentMoney = this.einsatz * 3;
+          this.einsatz = this.inputEinsatz;
+          currentMoney -= this.einsatz;
+          this.tries.push({
+            currentMoney: currentMoney,
+            winnerNumber: win,
+            einsatz: this.einsatz,
+          });
+        } else {
+          // TODO: Aufhören bei Höchsteinsatz
+          currentMoney -= this.einsatz;
+          this.einsatz = this.einsatz * 2;
+          this.tries.push({
+            currentMoney: currentMoney,
+            winnerNumber: win,
+            einsatz: this.einsatz,
+          });
+        }
       }
+    },
+    reset() {
+      this.tries = [];
+      this.einsatz = this.inputEinsatz;
+      this.maxValue = this.inputMaxValue;
     },
 
     getRandomInt() {
       return Math.floor(Math.random() * 36);
     },
   },
+  mounted() {
+    this.currentMoney = this.einsatz;
+  },
 };
 </script>
-
-<style></style>
