@@ -71,6 +71,7 @@ export default {
       einsatz: null,
       maxValue: null,
       tries: [],
+      winnerNumber: 0,
     };
   },
   methods: {
@@ -79,97 +80,47 @@ export default {
       this.einsatz = this.inputEinsatz;
       this.maxValue = this.inputMaxValue;
       for (var i = 0; i < 100; i++) {
-        const win = this.getRandomInt();
+        this.winnerNumber = this.getRandomInt();
         let currentMoney =
           this.tries.length > 0 ? this.tries[i - 1].currentMoney : 0;
 
-        if (win >= 13 && win <= 24) {
-          this.win(i, win, currentMoney);
-        } else if (win === 0) {
-          this.tries.push({
-            currentMoney: currentMoney,
-            winnerNumber: win,
-            einsatz: this.einsatz,
-          });
+        if (this.winnerNumber >= 13 && this.winnerNumber <= 24) {
+          this.addItem(this.win(currentMoney));
+        } else if (this.winnerNumber === 0) {
+          this.addItem(currentMoney);
         } else {
-          this.loss(i, win, currentMoney);
+          this.addItem(this.loss(currentMoney));
         }
         if (this.einsatz > this.inputMaxValue) {
           break;
         }
-
-        // if (win >= 13 && win <= 24) {
-        //   let wonEinsatz = this.einsatz * 3;
-        //   wonEinsatz -= this.einsatz;
-        //   // currentMoney += this.einsatz * 3;
-        //   // currentMoney -= this.einsatz;
-        //   if (this.tries[i - 1].currentMoney > 0) {
-        //     wonEinsatz -= this.tries[i - 1].currentMoney;
-        //   } else {
-        //     wonEinsatz += this.tries[i - 1].currentMoney;
-        //   }
-        //   // Reset Einsatz
-        //   this.tries.push({
-        //     currentMoney: wonEinsatz,
-        //     winnerNumber: win,
-        //     einsatz: this.einsatz,
-        //   });
-        //   this.einsatz = this.inputEinsatz;
-        // } else if (win === 0) {
-        //   this.tries.push({
-        //     currentMoney: currentMoney,
-        //     winnerNumber: win,
-        //     einsatz: this.einsatz,
-        //   });
-        // } else {
-        //   // TODO: Aufhören bei Höchsteinsatz
-        //   if (this.tries[i - 1].currentMoney > 0) {
-        //     currentMoney -= this.tries[i - 1].currentMoney;
-        //   } else {
-        //     currentMoney += this.tries[i - 1].currentMoney;
-        //   }
-        //   this.tries.push({
-        //     currentMoney: currentMoney,
-        //     winnerNumber: win,
-        //     einsatz: this.einsatz,
-        //   });
-        //   this.einsatz = this.einsatz * 2;
-        // }
       }
     },
-    win(i, win, currentMoney) {
-      const wonEinsatz = this.einsatz * 2;
-      currentMoney += wonEinsatz;
-
-      this.tries.push({
-        currentMoney: currentMoney,
-        winnerNumber: win,
-        einsatz: this.einsatz,
-      });
-      // Reset Einsatz
+    win(currentMoney) {
+      currentMoney += this.einsatz * 2;
       this.einsatz = this.inputEinsatz;
+      return currentMoney;
     },
-    loss(i, win, currentMoney) {
+    loss(currentMoney) {
       currentMoney -= this.einsatz;
-      this.tries.push({
-        currentMoney: currentMoney,
-        winnerNumber: win,
-        einsatz: this.einsatz,
-      });
       this.einsatz *= 2;
+      return currentMoney;
     },
     reset() {
       this.tries = [];
       this.einsatz = this.inputEinsatz;
       this.maxValue = this.inputMaxValue;
     },
-
     getRandomInt() {
       return Math.floor(Math.random() * 36);
     },
-  },
-  mounted() {
-    this.currentMoney = this.einsatz;
+    addItem(currentMoney) {
+      this.tries.push({
+        currentMoney: currentMoney,
+        winnerNumber: this.winnerNumber,
+        einsatz: this.einsatz,
+      });
+    },
   },
 };
 </script>
