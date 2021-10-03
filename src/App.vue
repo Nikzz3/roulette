@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Roulette</h1>
+    <h1>Roulette Robin Scherf und Nick Zimmermann</h1>
     <b-form-checkbox v-model="checked" name="check-button" switch>
       Analyse
     </b-form-checkbox>
