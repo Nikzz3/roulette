@@ -1,7 +1,11 @@
 <template>
   <div class="container">
     <h1>Roulette</h1>
-    <form @submit.prevent="submit">
+    <b-form-checkbox v-model="checked" name="check-button" switch>
+      Analyse
+    </b-form-checkbox>
+
+    <form @submit.prevent="checked ? analyse() : submit()">
       <div class="input-group mb-3"></div>
       <div>
         <input
@@ -18,46 +22,60 @@
           :value="inputMaxValue"
           required
         />
+        <input
+          type="number"
+          class="form-control mb-3"
+          placeholder="Anzahl Durchläufe"
+          v-model="rounds"
+          required
+          v-if="checked"
+        />
         <button type="submit" class="btn btn-primary">Speichern</button>
       </div>
       <p>
         Der Spieler gewinnt die Runde, wenn die Zahl zwischen 13 und 24 ist.
       </p>
     </form>
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th scope="col" class="text-center">#</th>
-          <th scope="col" class="text-center">Gewinnerzahl</th>
-          <th scope="col" class="text-center">Einsatz</th>
-          <th scope="col" class="text-center">Aktuelles Guthaben</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(current, index) in tries" :key="index">
-          <th scope="row">{{ index }}</th>
-          <td
-            :class="
-              current.winnerNumber >= 13 && current.winnerNumber <= 24
-                ? 'text-center bg-success'
-                : 'text-center bg-danger'
-            "
-          >
-            {{ current.winnerNumber }}
-          </td>
-          <td class="text-center">{{ current.einsatz }}</td>
-          <td
-            :class="
-              current.currentMoney >= 0
-                ? 'text-center bg-success'
-                : 'text-center bg-danger'
-            "
-          >
-            {{ current.currentMoney }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="!checked">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th scope="col" class="text-center">#</th>
+            <th scope="col" class="text-center">Gewinnerzahl</th>
+            <th scope="col" class="text-center">Einsatz</th>
+            <th scope="col" class="text-center">Aktuelles Guthaben</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(current, index) in tries" :key="index">
+            <th scope="row">{{ index }}</th>
+            <td
+              :class="
+                current.winnerNumber >= 13 && current.winnerNumber <= 24
+                  ? 'text-center bg-success'
+                  : 'text-center bg-danger'
+              "
+            >
+              {{ current.winnerNumber }}
+            </td>
+            <td class="text-center">{{ current.einsatz }}</td>
+            <td
+              :class="
+                current.currentMoney >= 0
+                  ? 'text-center bg-success'
+                  : 'text-center bg-danger'
+              "
+            >
+              {{ current.currentMoney }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-else>
+      <p>Verloren: {{ losses }}</p>
+      <p>Gewonnen: {{ wins }}</p>
+    </div>
   </div>
 </template>
 
@@ -72,9 +90,45 @@ export default {
       maxValue: null,
       tries: [],
       winnerNumber: 0,
+      checked: false,
+      losses: 0,
+      wins: 0,
+      rounds: 10,
     };
   },
   methods: {
+    analyse() {
+      this.reset();
+      this.wins = 0;
+      this.losses = 0;
+      this.einsatz = this.inputEinsatz;
+      this.maxValue = this.inputMaxValue;
+      console.log(this.rounds);
+      for (let j = 0; j < this.rounds; j++) {
+        for (var i = 0; i < 100; i++) {
+          this.winnerNumber = this.getRandomInt();
+          let currentMoney =
+            this.tries.length > 0 ? this.tries[i - 1].currentMoney : 0;
+
+          if (this.winnerNumber >= 13 && this.winnerNumber <= 24) {
+            this.addItem(this.win(currentMoney));
+          } else if (this.winnerNumber === 0) {
+            this.addItem(currentMoney);
+          } else {
+            this.addItem(this.loss(currentMoney));
+          }
+          if (this.einsatz > this.inputMaxValue) {
+            break;
+          }
+        }
+        if (this.tries[this.tries.length - 1].currentMoney > 0) {
+          this.wins++;
+        } else {
+          this.losses++;
+        }
+        this.tries = [];
+      }
+    },
     submit() {
       this.reset();
       this.einsatz = this.inputEinsatz;
