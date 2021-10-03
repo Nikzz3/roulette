@@ -181,5 +181,11 @@ export default {
       });
     },
   },
+  watch: {
+    checked() {
+      this.wins = 0;
+      this.losses = 0;
+    },
+  },
 };
 </script>
