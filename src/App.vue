@@ -99,7 +99,7 @@ export default {
   data() {
     return {
       inputEinsatz: 5,
-      inputMaxValue: 10000,
+      inputMaxValue: 1000,
       einsatz: null,
       maxValue: null,
       tries: [],
