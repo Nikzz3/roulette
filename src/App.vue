@@ -8,20 +8,23 @@
     <form @submit.prevent="checked ? analyse() : submit()">
       <div class="input-group mb-3"></div>
       <div>
+        <label>Einsatz</label>
         <input
           type="number"
           class="form-control mb-3"
           placeholder="Einsatz..."
-          :value="inputEinsatz"
+          v-model="inputEinsatz"
           required
         />
+        <label>Höchsteinsatz</label>
         <input
           type="number"
           class="form-control mb-3"
           placeholder="Höchsteinsatz..."
-          :value="inputMaxValue"
+          v-model="inputMaxValue"
           required
         />
+        <label v-if="checked">Anzahl Durchläufe</label>
         <input
           type="number"
           class="form-control mb-3"
@@ -37,6 +40,17 @@
       </p>
     </form>
     <div v-if="!checked">
+      <div v-if="tries.length > 0">
+        <h3
+          v-if="tries[tries.length - 1].currentMoney > 0"
+          class="text-success"
+        >
+          Gewonnen!
+        </h3>
+        <h3 v-else class="text-danger">Verloren!</h3>
+        <p>Verloren: {{ losses }}</p>
+        <p>Gewonnen: {{ wins }}</p>
+      </div>
       <table class="table table-striped table-hover">
         <thead>
           <tr>
@@ -48,7 +62,7 @@
         </thead>
         <tbody>
           <tr v-for="(current, index) in tries" :key="index">
-            <th scope="row">{{ index }}</th>
+            <th scope="row">{{ index + 1 }}</th>
             <td
               :class="
                 current.winnerNumber >= 13 && current.winnerNumber <= 24
@@ -93,7 +107,7 @@ export default {
       checked: false,
       losses: 0,
       wins: 0,
-      rounds: 10,
+      rounds: 1000,
     };
   },
   methods: {
@@ -103,61 +117,50 @@ export default {
       this.losses = 0;
       this.einsatz = this.inputEinsatz;
       this.maxValue = this.inputMaxValue;
-      console.log(this.rounds);
       for (let j = 0; j < this.rounds; j++) {
-        for (var i = 0; i < 100; i++) {
-          this.winnerNumber = this.getRandomInt();
-          let currentMoney =
-            this.tries.length > 0 ? this.tries[i - 1].currentMoney : 0;
+        this.calc();
+        this.reset();
+      }
+    },
+    calc() {
+      for (var i = 0; i < 100; i++) {
+        this.winnerNumber = this.getRandomInt(0, 36);
+        let currentMoney =
+          this.tries.length > 0 ? this.tries[i - 1].currentMoney : 0;
 
-          if (this.winnerNumber >= 13 && this.winnerNumber <= 24) {
-            this.addItem(this.win(currentMoney));
-          } else if (this.winnerNumber === 0) {
-            this.addItem(currentMoney);
-          } else {
-            this.addItem(this.loss(currentMoney));
-          }
+        if (this.winnerNumber >= 13 && this.winnerNumber <= 24) {
+          this.addItem(this.win(currentMoney));
+          this.einsatz = this.inputEinsatz;
+        } else if (this.winnerNumber === 0) {
+          this.addItem(currentMoney);
+        } else {
+          const newItem = this.loss(currentMoney);
           if (this.einsatz > this.inputMaxValue) {
+            this.einsatz = this.inputEinsatz;
             break;
           }
+          this.addItem(newItem);
+          this.einsatz *= 2;
         }
-        if (this.tries[this.tries.length - 1].currentMoney > 0) {
-          this.wins++;
-        } else {
-          this.losses++;
-        }
-        this.tries = [];
+      }
+      if (this.tries[this.tries.length - 1].currentMoney > 0) {
+        this.wins++;
+      } else {
+        this.losses++;
       }
     },
     submit() {
       this.reset();
       this.einsatz = this.inputEinsatz;
       this.maxValue = this.inputMaxValue;
-      for (var i = 0; i < 100; i++) {
-        this.winnerNumber = this.getRandomInt();
-        let currentMoney =
-          this.tries.length > 0 ? this.tries[i - 1].currentMoney : 0;
-
-        if (this.winnerNumber >= 13 && this.winnerNumber <= 24) {
-          this.addItem(this.win(currentMoney));
-        } else if (this.winnerNumber === 0) {
-          this.addItem(currentMoney);
-        } else {
-          this.addItem(this.loss(currentMoney));
-        }
-        if (this.einsatz > this.inputMaxValue) {
-          break;
-        }
-      }
+      this.calc();
     },
     win(currentMoney) {
       currentMoney += this.einsatz * 2;
-      this.einsatz = this.inputEinsatz;
       return currentMoney;
     },
     loss(currentMoney) {
       currentMoney -= this.einsatz;
-      this.einsatz *= 2;
       return currentMoney;
     },
     reset() {
@@ -165,8 +168,10 @@ export default {
       this.einsatz = this.inputEinsatz;
       this.maxValue = this.inputMaxValue;
     },
-    getRandomInt() {
-      return Math.floor(Math.random() * 36);
+    getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     },
     addItem(currentMoney) {
       this.tries.push({
