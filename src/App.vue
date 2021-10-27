@@ -54,7 +54,7 @@
       <table class="table table-striped table-hover">
         <thead>
           <tr>
-            <th scope="col" class="text-center">#</th>
+            <th scope="col" class="text-center">Durchläufe</th>
             <th scope="col" class="text-center">Gewinnerzahl</th>
             <th scope="col" class="text-center">Einsatz</th>
             <th scope="col" class="text-center">Aktuelles Guthaben</th>
