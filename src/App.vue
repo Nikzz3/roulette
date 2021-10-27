@@ -47,7 +47,7 @@
         >
           Gewonnen!
         </h3>
-        <h3 v-else class="text-danger">Verloren!!!!</h3>
+        <h3 v-else class="text-danger">Verloren!</h3>
         <p>Verloren: {{ losses }}</p>
         <p>Gewonnen: {{ wins }}</p>
       </div>
